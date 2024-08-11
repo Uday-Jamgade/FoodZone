@@ -1,0 +1,202 @@
+import { useEffect, useState } from "react";
+import styled from "styled-components";
+import SearchInput from "./Components/SearchInput/SearchInput"
+
+
+export const BASE_URL= "http://localhost:9000";
+
+const App = () => {
+
+  const [data,setData]= useState(null);
+  const [filteredData,setFilteredData]=useState(null);
+  const [loading,setLoading]= useState(false);
+  const [error,setError]=useState(null);
+  const [SelectedBtn,setSelectedBtn]=useState("all"); 
+
+  
+  useEffect(()=>{
+ const fetchFoodData = async ()=>{
+  setLoading(true);
+
+try{
+
+  const response=await fetch(BASE_URL);
+
+  const json=await response.json();
+
+  setData(json);
+  setFilteredData(json);
+  setLoading(false);
+}catch(error){
+
+  setError("Unable to fetch data");
+}
+
+ };
+ fetchFoodData();
+
+  },[]);
+ 
+  const searchFood = (e)=>{
+    const searchValue=e.target.value;
+
+    if(searchValue=== " "){
+      setFilteredData(null);
+    }
+
+    const filter =data?.filter((food)=>
+    
+      food.name.toLowerCase().includes(searchValue.toLowerCase())
+    );
+
+    setFilteredData(filter);
+  };
+
+  const filterfood =(type)=>{
+
+    if(type==="all"){
+      setFilteredData(data);
+      setSelectedBtn("all");
+      return;
+    };
+
+    const filter =data?.filterfood((food)=>
+      food.type.toLowerCase().includes(type.toLowerCase())
+    );
+    setFilteredData(filter);
+    setSelectedBtn(type);
+
+
+  };
+
+  const filterBtns = [
+    {
+      name: "All",
+      type: "all",
+    },
+    {
+      name: "Breakfast",
+      type: "breakfast",
+    },
+    {
+      name: "Lunch",
+      type: "lunch",
+    },
+    {
+      name: "Dinner",
+      type: "dinner",
+    },
+  ];
+
+  if (error) return <div>{error}</div>;
+  if (loading) return <div>loading.....</div>;
+
+ 
+  return(
+  <>
+      <Container>
+        <TopContainer>
+          <div className="logo">
+            <img src="./logo.svg" alt="" placeholder="Search Food..." />
+          </div>
+
+          <div className="serch">
+            <input onChange={searchFood} placeholder="Search Food..." />
+          </div>
+        </TopContainer> 
+
+        <FilterContainer>
+
+          {  filterBtns.map((value)=>(
+              <Button
+              isSelected ={SelectedBtn===value.type}
+              key={value.name}
+              onClick={()=>filterfood(value.type)}
+            
+              
+              >
+
+                {value.name}
+              </Button>
+
+          ))}
+            
+        </FilterContainer>
+             
+
+         <SearchInput  data={filteredData}></SearchInput>         
+      </Container>
+  
+  
+  
+  </>
+
+
+
+
+  );
+};
+
+export default App;
+
+export const Container= styled.div`
+max-width:1500px;
+margine:0 auto;
+`;
+
+const TopContainer = styled.section`
+  height: 140px;
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  align-items: center;
+
+           .serch{
+            input{
+             background-color: Transparent;
+             border:1px solid red;
+             color: white;
+             border-radius:5px;
+             height:40px;
+             font-size:16px;
+             padding: 0 10px;
+             &::placeholder{
+             color:white;
+             }
+            }
+
+
+           }
+
+
+  @media (0<width<600px){
+  
+  flex-direction: column;
+  height:120px;
+  
+  }
+`;
+
+const FilterContainer = styled.section`
+        display: flex;
+        justify-content : center;
+        gap:12px;
+        padding: 20px;
+
+        `;
+
+
+        
+
+export const Button = styled.button`
+  background: ${({ isSelected }) => (isSelected ? "#f22f2f" : "#ff4343")};
+  outline: 1px solid ${({ isSelected }) => (isSelected ? "white" : "#ff4343")};
+  border-radius: 5px;
+  padding: 6px 12px;
+  border: none;
+  color: white;
+  cursor: pointer;
+  &:hover {
+    background-color: #f22f2f;
+  }
+`;
